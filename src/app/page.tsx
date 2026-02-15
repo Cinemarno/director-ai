@@ -531,3 +531,129 @@ export default function DirectorAI() {
     '#feca57', '#48dbfb', '#1dd1a1', '#FF6B6B', '#4ECDC4',
     '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#F39C12', '#3498DB'
   ]
+  return (
+    <div className={`min-h-screen ${settings.darkMode ? 'dark' : ''}`}>
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
+        {/* Header */}
+        <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black tracking-widest bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 bg-clip-text text-transparent">
+                  {t('appName')}
+                </span>
+                <span className="text-2xl font-light text-zinc-400">{t('appSuffix')}</span>
+              </div>
+            </div>
+            {/* Language Selector */}
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-zinc-400" />
+              <div className="flex gap-1 bg-zinc-800 rounded-lg p-1">
+                <button
+                  onClick={() => setLanguage('fr')}
+                  className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${language === 'fr' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  FR
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${language === 'en' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Tabs Navigation */}
+        <div className="border-b border-zinc-800 bg-zinc-900/50">
+          <div className="max-w-7xl mx-auto px-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-transparent h-auto p-0 border-b-0">
+                <TabsTrigger value="composer" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 rounded-none px-6 py-4 text-zinc-400 hover:text-white transition-colors">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {t('tabComposer')}
+                </TabsTrigger>
+                <TabsTrigger value="image-to-prompt" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 rounded-none px-6 py-4 text-zinc-400 hover:text-white transition-colors">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  {t('tabImageToPrompt')}
+                </TabsTrigger>
+                <TabsTrigger value="image-generator" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 rounded-none px-6 py-4 text-zinc-400 hover:text-white transition-colors">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  {t('tabImage')}
+                </TabsTrigger>
+                <TabsTrigger value="historique" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 rounded-none px-6 py-4 text-zinc-400 hover:text-white transition-colors">
+                  <History className="w-4 h-4 mr-2" />
+                  {t('tabHistory')}
+                  {history.length > 0 && (
+                    <Badge className="ml-2 bg-zinc-700 text-zinc-300">{history.length}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="reglages" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 rounded-none px-6 py-4 text-zinc-400 hover:text-white transition-colors">
+                  <Settings className="w-4 h-4 mr-2" />
+                  {t('tabSettings')}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* COMPOSER TAB */}
+              <TabsContent value="composer" className="mt-0 border-0 p-0">
+                <div className="py-6 space-y-8">
+                  {/* Model Selection */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {VIDEO_MODELS.map((model) => (
+                      <button
+                        key={model.id}
+                        onClick={() => setSelectedModel(model.id)}
+                        className={`p-4 rounded-xl border transition-all text-left ${selectedModel === model.id ? 'bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border-amber-500/50' : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'}`}
+                      >
+                        <div className="flex items-baseline gap-2">
+                          <span className={`text-lg font-bold ${selectedModel === model.id ? 'text-amber-300' : 'text-white'}`}>{model.name}</span>
+                          <span className="text-sm text-zinc-500">{model.version}</span>
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-1">{model.description}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Raw Idea Input */}
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6">
+                      <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">
+                        {t('labelRawIdea')}
+                      </Label>
+                      <Textarea
+                        placeholder={t('placeholderRawIdea')}
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        className="min-h-[120px] bg-zinc-900/50 border-zinc-700 resize-none text-white placeholder:text-zinc-600"
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-zinc-500">{userInput.length} {t('characters')}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Frames */}
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6">
+                      <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">
+                        {t('labelFrames')}
+                      </Label>
+                      <p className="text-xs text-zinc-500 mb-4">{t('descriptionFrames')}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Start Frame */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-zinc-300">
+                            <span className="w-4 h-4 flex items-center justify-center bg-green-600 rounded text-xs">▶</span>
+                            {t('startFrame')}
+                          </div>
+                          {startFramePreview ? (
+                            <div className="relative group">
+                              <img src={startFramePreview} alt="Start frame" className="w-full h-32 object-cover rounded-lg border border-zinc-600" />
+                              <button onClick={() => clearFrame('start')} className="absolute top-2 right-2 p-1 bg-red-600 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex items-center justify-center
