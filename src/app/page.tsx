@@ -657,3 +657,353 @@ export default function DirectorAI() {
                             </div>
                           ) : (
                             <label className="flex items-center justify-center
+
+                                                {/* Technical Parameters */}
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6">
+                      <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{t('labelTechnical')}</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramDuration')}</Label>
+                          <Select value={duration} onValueChange={setDuration}>
+                            <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              {DURATION_OPTIONS.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramFormat')}</Label>
+                          <Select value={format} onValueChange={setFormat}>
+                            <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              {FORMAT_OPTIONS.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramResolution')}</Label>
+                          <Select value={resolution} onValueChange={setResolution}>
+                            <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              {RESOLUTION_OPTIONS.map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramFPS')}</Label>
+                          <Select value={fps} onValueChange={setFps}>
+                            <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              {FPS_OPTIONS.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramMovement')}: {movementIntensity}/10</Label>
+                          <Slider value={[movementIntensity]} onValueChange={([v]) => setMovementIntensity(v)} min={1} max={10} step={1} className="w-full" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-zinc-500">{t('paramDepth')}: {depthOfField}/10</Label>
+                          <Slider value={[depthOfField]} onValueChange={([v]) => setDepthOfField(v)} min={1} max={10} step={1} className="w-full" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Audio (VEO only) */}
+                  {selectedModel === 'veo' && (
+                    <Card className="bg-zinc-800/30 border-zinc-700">
+                      <CardContent className="p-6">
+                        <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{t('labelAudio')}</Label>
+                        <Textarea placeholder={t('placeholderAudio')} value={audioDescription} onChange={(e) => setAudioDescription(e.target.value)} className="min-h-[80px] bg-zinc-900/50 border-zinc-700 resize-none" />
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Additional Context */}
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6">
+                      <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{t('labelContext')}</Label>
+                      <Textarea placeholder={t('placeholderContext')} value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} className="min-h-[80px] bg-zinc-900/50 border-zinc-700 resize-none" />
+                    </CardContent>
+                  </Card>
+
+                  {/* Generate Button */}
+                  <Button onClick={generatePrompt} disabled={isGenerating || !userInput.trim()} className="w-full py-6 text-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-zinc-900 font-bold">
+                    {isGenerating ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{language === 'fr' ? 'GÉNÉRATION EN COURS...' : 'GENERATING...'}</>
+                    ) : (
+                      <><Sparkles className="w-5 h-5 mr-2" />{t('btnAnalyze')}</>
+                    )}
+                  </Button>
+
+                  {/* Generated Output */}
+                  {(generatedPrompt || generatedAnalysis) && (
+                    <div className="space-y-6">
+                      {generatedAnalysis && (
+                        <Card className="bg-zinc-800/30 border-zinc-700">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-zinc-400 uppercase tracking-wider">{language === 'fr' ? 'Analyse' : 'Analysis'}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <ScrollArea className="max-h-[300px]">
+                              <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap text-zinc-300">{generatedAnalysis}</div>
+                            </ScrollArea>
+                          </CardContent>
+                        </Card>
+                      )}
+                      <Card className="bg-zinc-800/30 border-zinc-700 border-amber-500/30">
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                          <CardTitle className="text-sm font-medium text-amber-300 uppercase tracking-wider">{language === 'fr' ? 'Prompt Final' : 'Final Prompt'}</CardTitle>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => copyToClipboard(generatedPrompt)} className="text-zinc-400 hover:text-white">
+                              <Copy className="w-4 h-4 mr-1" />{t('btnCopy')}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={downloadPrompt} className="text-zinc-400 hover:text-white">
+                              <Download className="w-4 h-4 mr-1" />{t('btnDownload')}
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <ScrollArea className="max-h-[500px]">
+                            <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap text-zinc-200">{generatedPrompt}</div>
+                          </ScrollArea>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* IMAGE TO PROMPT TAB */}
+              <TabsContent value="image-to-prompt" className="mt-0 border-0 p-0">
+                <div className="py-6 space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="bg-zinc-800/30 border-zinc-700">
+                      <CardContent className="p-6">
+                        <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{language === 'fr' ? 'IMAGE À ANALYSER' : 'IMAGE TO ANALYZE'}</Label>
+                        <div className="space-y-4">
+                          {imageToAnalyzePreview ? (
+                            <div className="relative group">
+                              <img src={imageToAnalyzePreview} alt="To analyze" className="w-full h-64 object-contain rounded-lg border border-zinc-600 bg-zinc-900/50" />
+                              <button onClick={() => { setImageToAnalyze(null); setImageToAnalyzePreview(null); setImageAnalysisResult('') }} className="absolute top-2 right-2 p-2 bg-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors bg-zinc-900/30">
+                              <ImageIcon className="w-12 h-12 text-zinc-500 mb-3" />
+                              <span className="text-sm text-zinc-400">{language === 'fr' ? 'Glissez une image ou cliquez' : 'Drag an image or click'}</span>
+                              <span className="text-xs text-zinc-600 mt-1">PNG, JPG, WEBP</span>
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) { setImageToAnalyze(file); const reader = new FileReader(); reader.onload = (ev) => setImageToAnalyzePreview(ev.target?.result as string); reader.readAsDataURL(file) } }} />
+                            </label>
+                          )}
+                          <div className="space-y-3">
+                            <div>
+                              <Label className="text-xs text-zinc-500 mb-2 block">{language === 'fr' ? 'Modèle cible (optionnel)' : 'Target model (optional)'}</Label>
+                              <Select value={imageTargetModel} onValueChange={setImageTargetModel}>
+                                <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-zinc-800 border-zinc-700">
+                                  {VIDEO_MODELS.map((m) => (<SelectItem key={m.id} value={m.id}>{m.name} {m.version}</SelectItem>))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-zinc-500 mb-2 block">{language === 'fr' ? 'Instructions personnalisées' : 'Custom instructions'}</Label>
+                              <Textarea placeholder={language === 'fr' ? "Ex: Focus sur l'éclairage..." : "Ex: Focus on lighting..."} value={imageCustomInstructions} onChange={(e) => setImageCustomInstructions(e.target.value)} className="min-h-[80px] bg-zinc-900/50 border-zinc-700 resize-none text-sm" />
+                            </div>
+                          </div>
+                          <Button onClick={analyzeImage} disabled={isAnalyzingImage || !imageToAnalyze} className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-zinc-900 font-bold">
+                            {isAnalyzingImage ? (
+                              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{language === 'fr' ? 'ANALYSE EN COURS...' : 'ANALYZING...'}</>
+                            ) : (
+                              <><Wand2 className="w-4 h-4 mr-2" />{language === 'fr' ? 'ANALYSER ET GÉNÉRER' : 'ANALYZE AND GENERATE'}</>
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    {imageAnalysisResult && (
+                      <Card className="bg-zinc-800/30 border-zinc-700 border-amber-500/30">
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                          <CardTitle className="text-sm font-medium text-amber-300 uppercase tracking-wider">{language === 'fr' ? 'Résultat de l\'analyse' : 'Analysis Result'}</CardTitle>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => copyToClipboard(imageAnalysisResult)} className="text-zinc-400 hover:text-white"><Copy className="w-4 h-4" /></Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <ScrollArea className="max-h-[500px]">
+                            <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap text-zinc-200">{imageAnalysisResult}</div>
+                          </ScrollArea>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* IMAGE GENERATOR TAB */}
+              <TabsContent value="image-generator" className="mt-0 border-0 p-0">
+                <div className="py-6 space-y-6">
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6">
+                      <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{language === 'fr' ? 'GÉNÉRATION D\'IMAGE' : 'IMAGE GENERATION'}</Label>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-xs text-zinc-500 mb-2 block">{language === 'fr' ? 'Description de l\'image' : 'Image description'}</Label>
+                          <Textarea placeholder={language === 'fr' ? 'Décrivez l\'image que vous souhaitez générer...' : 'Describe the image you want to generate...'} value={imageGenInput} onChange={(e) => setImageGenInput(e.target.value)} className="min-h-[100px] bg-zinc-900/50 border-zinc-700 resize-none" />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div>
+                            <Label className="text-xs text-zinc-500 mb-2 block">{language === 'fr' ? 'Ratio' : 'Ratio'}</Label>
+                            <Select value={imageGenAspectRatio} onValueChange={setImageGenAspectRatio}>
+                              <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-zinc-800 border-zinc-700">
+                                <SelectItem value="1:1">1:1</SelectItem>
+                                <SelectItem value="16:9">16:9</SelectItem>
+                                <SelectItem value="9:16">9:16</SelectItem>
+                                <SelectItem value="4:3">4:3</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-zinc-500 mb-2 block">{language === 'fr' ? 'Style' : 'Style'}</Label>
+                            <Select value={imageGenStyle} onValueChange={setImageGenStyle}>
+                              <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue placeholder={language === 'fr' ? 'Sélectionner' : 'Select'} /></SelectTrigger>
+                              <SelectContent className="bg-zinc-800 border-zinc-700">
+                                <SelectItem value="photorealistic">Photorealistic</SelectItem>
+                                <SelectItem value="cinematic">Cinematic</SelectItem>
+                                <SelectItem value="anime">Anime</SelectItem>
+                                <SelectItem value="digital-art">Digital Art</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <Button onClick={generateImage} disabled={isGeneratingImage || !imageGenInput.trim()} className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-zinc-900 font-bold">
+                          {isGeneratingImage ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{language === 'fr' ? 'GÉNÉRATION...' : 'GENERATING...'}</>
+                          ) : (
+                            <><ImageIcon className="w-4 h-4 mr-2" />{language === 'fr' ? 'GÉNÉRER L\'IMAGE' : 'GENERATE IMAGE'}</>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {generatedImageUrl && (
+                    <Card className="bg-zinc-800/30 border-zinc-700 border-amber-500/30">
+                      <CardContent className="p-6">
+                        <img src={generatedImageUrl} alt="Generated" className="w-full max-w-md mx-auto rounded-lg" />
+                        {generatedImagePrompt && (
+                          <div className="mt-4">
+                            <Label className="text-xs text-zinc-500 mb-2 block">Prompt</Label>
+                            <ScrollArea className="max-h-[200px]">
+                              <div className="text-sm text-zinc-300 whitespace-pre-wrap">{generatedImagePrompt}</div>
+                            </ScrollArea>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* HISTORY TAB */}
+              <TabsContent value="historique" className="mt-0 border-0 p-0">
+                <div className="py-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-semibold text-zinc-300">{t('tabHistory')}</h2>
+                    {history.length > 0 && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm"><Trash2 className="w-4 h-4 mr-2" />{language === 'fr' ? 'Effacer tout' : 'Clear all'}</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-zinc-800 border-zinc-700">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">{language === 'fr' ? 'Effacer l\'historique ?' : 'Clear history?'}</AlertDialogTitle>
+                            <AlertDialogDescription className="text-zinc-400">{language === 'fr' ? 'Cette action est irréversible.' : 'This action cannot be undone.'}</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-zinc-700 border-zinc-600 text-white">{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
+                            <AlertDialogAction onClick={clearHistory} className="bg-red-600 hover:bg-red-700">{language === 'fr' ? 'Effacer' : 'Clear'}</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                  {history.length === 0 ? (
+                    <Card className="bg-zinc-800/30 border-zinc-700">
+                      <CardContent className="p-12 text-center">
+                        <History className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+                        <p className="text-zinc-500">{language === 'fr' ? 'Aucun historique' : 'No history'}</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <ScrollArea className="h-[600px]">
+                      <div className="space-y-4">
+                        {history.map((entry) => (
+                          <Card key={entry.id} className="bg-zinc-800/30 border-zinc-700">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge variant="outline" className="border-amber-500/50 text-amber-300">{entry.model}</Badge>
+                                    <span className="text-xs text-zinc-500">{new Date(entry.timestamp).toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US')}</span>
+                                  </div>
+                                  <p className="text-sm text-zinc-400 truncate">{entry.userInput}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="ghost" onClick={() => loadFromHistory(entry)} className="text-zinc-400 hover:text-white">{language === 'fr' ? 'Charger' : 'Load'}</Button>
+                                  <Button size="sm" variant="ghost" onClick={() => deleteHistoryEntry(entry.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-4 h-4" /></Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* SETTINGS TAB */}
+              <TabsContent value="reglages" className="mt-0 border-0 p-0">
+                <div className="py-6 space-y-6">
+                  <Card className="bg-zinc-800/30 border-zinc-700">
+                    <CardContent className="p-6 space-y-6">
+                      <div>
+                        <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{t('language')}</Label>
+                        <div className="flex gap-2">
+                          <Button onClick={() => setLanguage('fr')} className={language === 'fr' ? 'bg-amber-500 text-zinc-900' : 'bg-zinc-700 text-zinc-300'}>{t('french')}</Button>
+                          <Button onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-amber-500 text-zinc-900' : 'bg-zinc-700 text-zinc-300'}>{t('english')}</Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4 block">{t('labelDefaultModel')}</Label>
+                        <Select value={settings.defaultModel} onValueChange={(v) => saveSettings({ ...settings, defaultModel: v })}>
+                          <SelectTrigger className="bg-zinc-900/50 border-zinc-700"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            {VIDEO_MODELS.map((m) => (<SelectItem key={m.id} value={m.id}>{m.name} {m.version}</SelectItem>))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="border-t border-zinc-800 py-4 mt-8">
+          <div className="max-w-7xl mx-auto px-6 text-center text-zinc-600 text-sm">
+            <span className="font-bold text-amber-300/50">{t('appName')}</span>
+            <span className="text-zinc-600">{t('appSuffix')}</span>
+            <span className="ml-2">{t('footerText')}</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  )
+}
